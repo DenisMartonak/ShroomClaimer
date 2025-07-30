@@ -3,12 +3,17 @@ import requests
 import datetime
 import os
 import sys
+import asyncio
+import discord
+from discord import Webhook
+import aiohttp
 
 load_dotenv()
 USERNAME = os.getenv("USERNAME")
 PASSWORD = os.getenv("PASSWORD")
 LOGIN_URL = os.getenv("LOGIN_URL")
 CLAIM_URL = os.getenv("CLAIM_URL")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
 status = {
     "last_claim_response": "Not yet claimed.",
@@ -54,6 +59,12 @@ def claim_gift(session):
     status['last_claim_time'] = timestamp
     return response
 
+async def webhookSend(url, response):
+    async with aiohttp.ClientSession() as session:
+        webhook = Webhook.from_url(url, session=session)
+        embed = discord.Embed(title=response)
+        await webhook.send(embed=embed, username="Shroom Dealer")
+
 def mushroom_bot():
     session = login()
     if not session:
@@ -61,6 +72,10 @@ def mushroom_bot():
         sys.exit(1)
 
     res = claim_gift(session)
+    url = WEBHOOK_URL
+    loop = asyncio.new_event_loop()
+    loop.run_until_complete(webhookSend(url, res))
+    loop.close()
 
     if "Unauthorized" in res.text:
         print("🔁 Re-authenticating due to 'Unauthorized'...")

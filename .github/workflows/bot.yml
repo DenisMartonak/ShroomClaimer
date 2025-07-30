@@ -25,4 +25,5 @@ jobs:
           PASSWORD: ${{ secrets.PASSWORD }}
           LOGIN_URL: ${{ secrets.LOGIN_URL }}
           CLAIM_URL: ${{ secrets.CLAIM_URL }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
         run: python bot.py

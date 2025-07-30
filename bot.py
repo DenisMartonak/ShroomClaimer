@@ -60,14 +60,15 @@ def claim_gift(session):
     return response
 
 async def webhookSend(url, response):
+    response_txt = response.text.strip()
     async with aiohttp.ClientSession() as session:
         if "success" in response.text:
             webhook = Webhook.from_url(url, session=session)
-            embed = discord.Embed(title="Shroom bot response ✅", description=response)
+            embed = discord.Embed(title="Shroom bot response ✅", description=response_txt)
             await webhook.send(embed=embed, username="Shroom Dealer")
         else:
             webhook = Webhook.from_url(url, session=session)
-            embed = discord.Embed(title="Shroom bot response ❌", description=response)
+            embed = discord.Embed(title="Shroom bot response ❌", description=response_txt)
             await webhook.send(embed=embed, username="Shroom Dealer")
 
 def mushroom_bot():

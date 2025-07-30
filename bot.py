@@ -61,9 +61,14 @@ def claim_gift(session):
 
 async def webhookSend(url, response):
     async with aiohttp.ClientSession() as session:
-        webhook = Webhook.from_url(url, session=session)
-        embed = discord.Embed(title=response)
-        await webhook.send(embed=embed, username="Shroom Dealer")
+        if "success" in response.text:
+            webhook = Webhook.from_url(url, session=session)
+            embed = discord.Embed(title="Shroom bot response ✅", description=response, timestamp=datetime.now())
+            await webhook.send(embed=embed, username="Shroom Dealer")
+        else:
+            webhook = Webhook.from_url(url, session=session)
+            embed = discord.Embed(title="Shroom bot response ❌", description=response, timestamp=datetime.now())
+            await webhook.send(embed=embed, username="Shroom Dealer")
 
 def mushroom_bot():
     session = login()
@@ -72,9 +77,8 @@ def mushroom_bot():
         sys.exit(1)
 
     res = claim_gift(session)
-    url = WEBHOOK_URL
     loop = asyncio.new_event_loop()
-    loop.run_until_complete(webhookSend(url, res))
+    loop.run_until_complete(webhookSend(WEBHOOK_URL, res))
     loop.close()
 
     if "Unauthorized" in res.text:

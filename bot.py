@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 import sys
 import asyncio
@@ -61,7 +61,7 @@ def claim_gift(session):
 
 async def webhookSend(url, response):
     async with aiohttp.ClientSession() as session:
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         if "success" in response.text:
             webhook = Webhook.from_url(url, session=session)
             embed = discord.Embed(title="Shroom bot response ✅", description=response, timestamp=now)

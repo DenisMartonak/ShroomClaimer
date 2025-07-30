@@ -4,14 +4,12 @@ import datetime
 import os
 import sys
 
-# Load environment variables
 load_dotenv()
 USERNAME = os.getenv("USERNAME")
 PASSWORD = os.getenv("PASSWORD")
 LOGIN_URL = os.getenv("LOGIN_URL")
 CLAIM_URL = os.getenv("CLAIM_URL")
 
-# Shared status (just for printing, not persistent between runs)
 status = {
     "last_claim_response": "Not yet claimed.",
     "last_claim_time": "N/A",
@@ -60,7 +58,7 @@ def mushroom_bot():
     session = login()
     if not session:
         print("❌ Could not log in. Exiting.")
-        sys.exit(1)  # Exit with error code for GitHub Actions logs
+        sys.exit(1)
 
     res = claim_gift(session)
 

@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 import requests
-import datetime
+from datetime import datetime
 import os
 import sys
 import asyncio

@@ -64,11 +64,12 @@ async def webhookSend(url, response):
     async with aiohttp.ClientSession() as session:
         if "success" in response.text:
             webhook = Webhook.from_url(url, session=session)
-            embed = discord.Embed(title="Shroom bot response ✅", description=response_txt)
+            embed = discord.Embed(title="Shroom bot response ✅", description=response_txt, colour=0xf500b4)
             await webhook.send(embed=embed, username="Shroom Dealer")
         else:
             webhook = Webhook.from_url(url, session=session)
-            embed = discord.Embed(title="Shroom bot response ❌", description=response_txt)
+            embed = discord.Embed(title="Shroom bot response ❌", description=response_txt, colour=0xf500b4)
+            embed.set_image(url="https://media1.tenor.com/m/pWbYdRvbuvsAAAAd/sheiken.gif")
             await webhook.send(embed=embed, username="Shroom Dealer")
 
 def mushroom_bot():

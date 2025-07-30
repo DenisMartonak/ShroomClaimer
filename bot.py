@@ -69,7 +69,7 @@ async def webhookSend(url, response):
         else:
             webhook = Webhook.from_url(url, session=session)
             embed = discord.Embed(title="Shroom bot response ❌", description=response_txt, colour=0xf500b4)
-            embed.set_image(url="https://media1.tenor.com/m/pWbYdRvbuvsAAAAd/sheiken.gif")
+            embed.set_image(url="https://c.tenor.com/pWbYdRvbuvsAAAAd/tenor.gif")
             await webhook.send(embed=embed, username="Shroom Dealer")
 
 def mushroom_bot():

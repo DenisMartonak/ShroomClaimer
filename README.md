@@ -75,12 +75,12 @@ This will:
 On success:
 > **Shroom bot response ✅**  
 > Status: `success`  
-> Message: `You've claimed your daily shroom!`
+> Message: `Hourly gift claimed successfully`
 
 On failure:
 > **Shroom bot response ❌**  
-> Status: `failed`  
-> Message: `Gift already claimed`
+> Status: `error`  
+> Message: `You already claimed this gift`
 
 ---
 

@@ -104,7 +104,6 @@ pip install -r requirements.txt
 - **Login failed**: Double-check your `USERNAME`, `PASSWORD`, and `LOGIN_URL`.
 - **Unauthorized**: The script will retry login automatically. Ensure credentials are valid.
 - **Webhook failed**: Confirm the `WEBHOOK_URL` is correct and the bot has permission to post.
-- **GIF not showing**: Discord may block certain GIFs; use static images if needed.
 
 ---
 

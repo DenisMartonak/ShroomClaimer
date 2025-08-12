@@ -10,8 +10,7 @@ import aiohttp
 import json
 
 load_dotenv()
-USERNAME = os.getenv("USERNAME")
-PASSWORD = os.getenv("PASSWORD")
+
 LOGIN_URL = os.getenv("LOGIN_URL")
 CLAIM_URL = os.getenv("CLAIM_URL")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
@@ -22,11 +21,24 @@ status = {
     "next_claim_in": "N/A"
 }
 
-def login():
+def get_accounts():
+    """Reads accounts from .env in format USERNAME_1, PASSWORD_1, USERNAME_2, PASSWORD_2..."""
+    accounts = []
+    i = 1
+    while True:
+        username = os.getenv(f"USERNAME_{i}")
+        password = os.getenv(f"PASSWORD_{i}")
+        if not username or not password:
+            break
+        accounts.append({"username": username, "password": password})
+        i += 1
+    return accounts
+
+def login(username, password):
     session = requests.Session()
     login_data = {
-        "login": USERNAME,
-        "password": PASSWORD
+        "login": username,
+        "password": password
     }
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -35,14 +47,14 @@ def login():
     response = session.post(LOGIN_URL, headers=headers, data=login_data)
 
     if "Logout" in response.text or response.ok:
-        print("✅ Logged in successfully.")
+        print(f"✅ [{username}] Logged in successfully.")
         return session
     else:
-        print("❌ Login failed.")
+        print(f"❌ [{username}] Login failed.")
         print(response.text)
         return None
 
-def claim_gift(session):
+def claim_gift(session, username):
     claim_data = {
         "category": "gifts",
         "action": "claim_gift",
@@ -53,50 +65,56 @@ def claim_gift(session):
     timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
     response_text = response.text.strip()
 
-    print(f"🎁 Claim response: {response_text}")
+    print(f"🎁 [{username}] Claim response: {response_text}")
     print(f"🕒 Time: {timestamp}")
 
     status['last_claim_response'] = response_text.replace("\n", " | ")
     status['last_claim_time'] = timestamp
     return response
 
-async def webhookSend(url, response):
+async def webhookSend(url, response, username):
     response_txt = response.text.strip()
-    response_data = json.loads(response_txt)
-    status = response_data["status"]
-    message = response_data["message"]
+    try:
+        response_data = json.loads(response_txt)
+    except json.JSONDecodeError:
+        response_data = {"status": "error", "message": "Invalid response from server"}
+
+    status_val = response_data.get("status", "unknown")
+    message = response_data.get("message", "No message")
     async with aiohttp.ClientSession() as session:
-        if "success" in response.text:
-            webhook = Webhook.from_url(url, session=session)
-            embed = discord.Embed(title="Shroom bot response ✅", colour=0x35f500)
-            embed.add_field(name="Status", value=status)
-            embed.add_field(name="Message", value=message)
-            await webhook.send(embed=embed, username="Shroom Dealer")
+        webhook = Webhook.from_url(url, session=session)
+        if "success" in status_val:
+            embed = discord.Embed(title=f"{username} - Shroom bot ✅", colour=0x35f500)
         else:
-            webhook = Webhook.from_url(url, session=session)
-            embed = discord.Embed(title="Shroom bot response ❌", colour=0xf50000)
-            embed.add_field(name="Status", value=status)
-            embed.add_field(name="Message", value=message)
-            await webhook.send(embed=embed, username="Shroom Dealer")
+            embed = discord.Embed(title=f"{username} - Shroom bot ❌", colour=0xf50000)
+        embed.add_field(name="Status", value=status_val)
+        embed.add_field(name="Message", value=message)
+        await webhook.send(embed=embed, username="Shroom Dealer")
 
-def mushroom_bot():
-    session = login()
+def mushroom_bot(username, password):
+    session = login(username, password)
     if not session:
-        print("❌ Could not log in. Exiting.")
-        sys.exit(1)
+        print(f"❌ [{username}] Could not log in. Skipping.")
+        return
 
-    res = claim_gift(session)
+    res = claim_gift(session, username)
     loop = asyncio.new_event_loop()
-    loop.run_until_complete(webhookSend(WEBHOOK_URL, res))
+    loop.run_until_complete(webhookSend(WEBHOOK_URL, res, username))
     loop.close()
 
     if "Unauthorized" in res.text:
-        print("🔁 Re-authenticating due to 'Unauthorized'...")
-        session = login()
+        print(f"🔁 [{username}] Re-authenticating due to 'Unauthorized'...")
+        session = login(username, password)
         if session:
-            claim_gift(session)
+            claim_gift(session, username)
 
-    print("✅ Claim attempt complete. Done for this run.")
+    print(f"✅ [{username}] Claim attempt complete.")
 
 if __name__ == "__main__":
-    mushroom_bot()
+    accounts = get_accounts()
+    if not accounts:
+        print("❌ No accounts found in .env")
+        sys.exit(1)
+
+    for account in accounts:
+        mushroom_bot(account["username"], account["password"])

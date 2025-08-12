@@ -21,9 +21,11 @@ jobs:
 
       - name: Run mushroom bot
         env:
-          USERNAME: ${{ secrets.USERNAME }}
-          PASSWORD: ${{ secrets.PASSWORD }}
           LOGIN_URL: ${{ secrets.LOGIN_URL }}
           CLAIM_URL: ${{ secrets.CLAIM_URL }}
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          USERNAME_1: ${{ secrets.USERNAME_1 }}
+          PASSWORD_1: ${{ secrets.PASSWORD_1 }}
+          USERNAME_2: ${{ secrets.USERNAME_2 }}
+          PASSWORD_2: ${{ secrets.PASSWORD_2 }}
         run: python bot.py

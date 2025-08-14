@@ -1,2 +1,12 @@
-- name: Test DNS
-  run: nslookup play.pandorasf.cc
+name: DNS Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: Test DNS
+      run: nslookup play.pandorasf.cc

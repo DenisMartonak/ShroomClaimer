@@ -8,7 +8,6 @@ import discord
 from discord import Webhook
 import aiohttp
 import json
-from playwright.sync_api import sync_playwright
 
 load_dotenv()
 
@@ -35,33 +34,25 @@ def get_accounts():
         i += 1
     return accounts
 
-def login_with_playwright(username, password):
-    """Logs in via Playwright to bypass Cloudflare and returns a requests.Session() with cookies."""
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        context = browser.new_context()
-        page = context.new_page()
+def login(username, password):
+    session = requests.Session()
+    login_data = {
+        "login": username,
+        "password": password
+    }
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": "Mozilla/5.0"
+    }
+    response = session.post(LOGIN_URL, headers=headers, data=login_data)
 
-        print(f"🌐 [{username}] Opening login page...")
-        page.goto(LOGIN_URL, wait_until="domcontentloaded")
-        page.wait_for_timeout(5000)  # Wait for Cloudflare challenge
-
-        print(f"🔑 [{username}] Filling login form...")
-        page.fill("input[name='login']", username)
-        page.fill("input[name='password']", password)
-        page.click("button[type='submit']")  # Adjust selector to match site's login button
-        page.wait_for_timeout(3000)  # Wait for login to process
-
-        # Extract cookies and put into requests.Session
-        cookies = context.cookies()
-        session = requests.Session()
-        for cookie in cookies:
-            session.cookies.set(cookie["name"], cookie["value"], domain=cookie.get("domain"))
-
-        browser.close()
-
-        print(f"✅ [{username}] Logged in via Playwright.")
+    if "Logout" in response.text or response.ok:
+        print(f"✅ [{username}] Logged in successfully.")
         return session
+    else:
+        print(f"❌ [{username}] Login failed.")
+        print(response.text)
+        return None
 
 def claim_gift(session, username):
     claim_data = {
@@ -101,7 +92,7 @@ async def webhookSend(url, response, username):
         await webhook.send(embed=embed, username="Shroom Dealer")
 
 def mushroom_bot(username, password):
-    session = login_with_playwright(username, password)
+    session = login(username, password)
     if not session:
         print(f"❌ [{username}] Could not log in. Skipping.")
         return
@@ -113,7 +104,7 @@ def mushroom_bot(username, password):
 
     if "Unauthorized" in res.text:
         print(f"🔁 [{username}] Re-authenticating due to 'Unauthorized'...")
-        session = login_with_playwright(username, password)
+        session = login(username, password)
         if session:
             claim_gift(session, username)
 

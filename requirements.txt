@@ -2,4 +2,3 @@ requests
 python-dotenv
 aiohttp
 discord
-playwright
